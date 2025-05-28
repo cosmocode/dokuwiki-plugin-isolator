@@ -89,4 +89,57 @@ class IdUtilsTest extends DokuWikiTest
         $this->expectExceptionMessage('Empty ID is not allowed');
         IdUtils::isInSameNamespace('', 'namespace');
     }
+
+    /**
+     * Data provider for testing getRelativeID method
+     *
+     * @return array Test cases
+     */
+    public function getRelativeIDProvider()
+    {
+        return [
+            'same page' => [
+                'wiki:page', 'wiki:page', ''
+            ],
+            'same namespace different page' => [
+                'wiki:target', 'wiki:source', 'target'
+            ],
+            'child namespace' => [
+                'wiki:child:page', 'wiki:source', 'child:page'
+            ],
+            'parent namespace' => [
+                'wiki:page', 'wiki:child:source', '..:page'
+            ],
+            'sibling namespace' => [
+                'wiki:sibling:page', 'wiki:child:source', '..:sibling:page'
+            ],
+            'multiple levels up' => [
+                'wiki:page', 'wiki:child:grandchild:source', '..:..:page'
+            ],
+            'completely different namespace' => [
+                'other:page', 'wiki:source', '..:..:other:page'
+            ],
+            'root to namespaced' => [
+                'wiki:page', 'source', 'wiki:page'
+            ],
+            'namespaced to root' => [
+                'page', 'wiki:source', '..:page'
+            ],
+            'deep to deep with common ancestor' => [
+                'common:path1:path2:target', 'common:path3:path4:source', '..:..:path1:path2:target'
+            ],
+            'empty reference' => [
+                'wiki:page', '', 'wiki:page'
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider getRelativeIDProvider
+     */
+    public function testGetRelativeID($id, $reference, $expected)
+    {
+        $result = IdUtils::getRelativeID($id, $reference);
+        $this->assertSame($expected, $result);
+    }
 }
