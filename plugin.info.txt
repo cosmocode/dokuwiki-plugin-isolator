@@ -1,0 +1,7 @@
+base   isolator
+author Andreas Gohr
+email  dokuwiki@cosmocode.de
+date   2025-05-28
+name   isolator plugin
+desc   Isolate a namespace's media files for easier copying
+url    https://www.dokuwiki.org/plugin:isolator
