@@ -25,7 +25,7 @@ class IdUtils
             throw new RuntimeException('Empty ID is not allowed');
         }
 
-        $idns = getNS($id);
+        $idns = (string) getNS($id);
         return $idns === $namespace;
     }
 
