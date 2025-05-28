@@ -2,10 +2,16 @@
 
 namespace dokuwiki\plugin\isolator;
 
+use RuntimeException;
+
 class IdUtils
 {
     public static function isInNamespace($id, $namespace)
     {
+        if ($id === '') {
+            throw new RuntimeException('Empty ID is not allowed');
+        }
+
         if ($namespace === '') {
             return true; // root namespace
         }
@@ -15,6 +21,10 @@ class IdUtils
 
     public static function isInSameNamespace($id, $namespace)
     {
+        if ($id === '') {
+            throw new RuntimeException('Empty ID is not allowed');
+        }
+
         $idns = getNS($id);
         return $idns === $namespace;
     }

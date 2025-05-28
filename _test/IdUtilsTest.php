@@ -29,8 +29,6 @@ class IdUtilsTest extends DokuWikiTest
             'no match with different namespace' => ['other:page', 'namespace', false],
             'no match with partial namespace' => ['name:page', 'namespace', false],
             'no match with page only' => ['page', 'namespace', false],
-            'empty id' => ['', 'namespace', false],
-            'empty id in root namespace' => ['', '', true],
         ];
     }
 
@@ -41,6 +39,16 @@ class IdUtilsTest extends DokuWikiTest
     {
         $result = IdUtils::isInNamespace($id, $namespace);
         $this->assertSame($expected, $result);
+    }
+
+    /**
+     * Test that empty ID throws exception in isInNamespace
+     */
+    public function testIsInNamespaceEmptyIdThrowsException()
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Empty ID is not allowed');
+        IdUtils::isInNamespace('', 'namespace');
     }
 
     /**
@@ -59,8 +67,6 @@ class IdUtilsTest extends DokuWikiTest
             'no match with page only' => ['page', 'namespace', false],
             'root namespace with page only' => ['page', '', true],
             'root namespace with namespaced page' => ['namespace:page', '', false],
-            'empty id with namespace' => ['', 'namespace', false],
-            'empty id with empty namespace' => ['', '', true],
         ];
     }
 
@@ -71,5 +77,15 @@ class IdUtilsTest extends DokuWikiTest
     {
         $result = IdUtils::isInSameNamespace($id, $namespace);
         $this->assertSame($expected, $result);
+    }
+
+    /**
+     * Test that empty ID throws exception in isInSameNamespace
+     */
+    public function testIsInSameNamespaceEmptyIdThrowsException()
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Empty ID is not allowed');
+        IdUtils::isInSameNamespace('', 'namespace');
     }
 }
