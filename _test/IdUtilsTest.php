@@ -42,4 +42,34 @@ class IdUtilsTest extends DokuWikiTest
         $result = IdUtils::isInNamespace($id, $namespace);
         $this->assertSame($expected, $result);
     }
+
+    /**
+     * Data provider for testing isInSameNamespace method
+     *
+     * @return array Test cases
+     */
+    public function isInSameNamespaceProvider()
+    {
+        return [
+            'exact namespace match' => ['namespace:page', 'namespace', true],
+            'no match with different namespace' => ['other:page', 'namespace', false],
+            'no match with nested namespace' => ['namespace:subns:page', 'namespace', false],
+            'no match with parent namespace' => ['ns:page', 'ns:subns', false],
+            'no match with child namespace' => ['ns:subns:page', 'ns', false],
+            'no match with page only' => ['page', 'namespace', false],
+            'root namespace with page only' => ['page', '', true],
+            'root namespace with namespaced page' => ['namespace:page', '', false],
+            'empty id with namespace' => ['', 'namespace', false],
+            'empty id with empty namespace' => ['', '', true],
+        ];
+    }
+
+    /**
+     * @dataProvider isInSameNamespaceProvider
+     */
+    public function testIsInSameNamespace($id, $namespace, $expected)
+    {
+        $result = IdUtils::isInSameNamespace($id, $namespace);
+        $this->assertSame($expected, $result);
+    }
 }
