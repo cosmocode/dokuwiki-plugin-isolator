@@ -84,7 +84,9 @@ class IdUtils
         $relative .= ($relative === '' ? '' : ':') . $id;
 
         // Ensure we are always relative to the current namespace. This is specific to the isolator plugin
-        if ($relative[0] !== '.') $relative = '.' . $relative;
+        if (str_contains($relative, ':') && !str_starts_with($relative, '.')) {
+            $relative = '.' . $relative;
+        }
 
         return $relative;
     }

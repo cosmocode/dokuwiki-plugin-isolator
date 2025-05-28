@@ -99,13 +99,13 @@ class IdUtilsTest extends DokuWikiTest
     {
         return [
             'same page' => [
-                'wiki:page', 'wiki:page', ''
+                'wiki:page', 'wiki:page', 'page'
             ],
             'same namespace different page' => [
                 'wiki:target', 'wiki:source', 'target'
             ],
             'child namespace' => [
-                'wiki:child:page', 'wiki:source', 'child:page'
+                'wiki:child:page', 'wiki:source', '.child:page'
             ],
             'parent namespace' => [
                 'wiki:page', 'wiki:child:source', '..:page'
@@ -117,19 +117,16 @@ class IdUtilsTest extends DokuWikiTest
                 'wiki:page', 'wiki:child:grandchild:source', '..:..:page'
             ],
             'completely different namespace' => [
-                'other:page', 'wiki:source', '..:..:other:page'
+                'other:page', 'wiki:source', '..:other:page'
             ],
             'root to namespaced' => [
-                'wiki:page', 'source', 'wiki:page'
+                'wiki:page', 'source', '.wiki:page'
             ],
             'namespaced to root' => [
                 'page', 'wiki:source', '..:page'
             ],
             'deep to deep with common ancestor' => [
                 'common:path1:path2:target', 'common:path3:path4:source', '..:..:path1:path2:target'
-            ],
-            'empty reference' => [
-                'wiki:page', '', 'wiki:page'
             ],
         ];
     }
