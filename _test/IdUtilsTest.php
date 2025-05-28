@@ -4,6 +4,7 @@ namespace dokuwiki\plugin\isolator\test;
 
 use DokuWikiTest;
 use dokuwiki\plugin\isolator\IdUtils;
+use RuntimeException;
 
 /**
  * Tests for the isolator plugin
