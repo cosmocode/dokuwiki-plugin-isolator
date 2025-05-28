@@ -4,9 +4,20 @@ namespace dokuwiki\plugin\isolator;
 
 use RuntimeException;
 
+/**
+ * Utility class for handling DokuWiki page IDs and namespaces
+ */
 class IdUtils
 {
-    public static function isInNamespace($id, $namespace)
+    /**
+     * Check if a page ID is within a specific namespace
+     *
+     * @param string $id The page ID to check
+     * @param string $namespace The namespace to check against
+     * @return bool True if the page is in the namespace, false otherwise
+     * @throws RuntimeException When an empty ID is provided
+     */
+    public static function isInNamespace(string $id, string $namespace): bool
     {
         if ($id === '') {
             throw new RuntimeException('Empty ID is not allowed');
@@ -19,7 +30,15 @@ class IdUtils
         return str_starts_with($id, "$namespace:");
     }
 
-    public static function isInSameNamespace($id, $namespace)
+    /**
+     * Check if a page ID is in exactly the same namespace (not a sub-namespace)
+     *
+     * @param string $id The page ID to check
+     * @param string $namespace The namespace to check against
+     * @return bool True if the page is in the same namespace, false otherwise
+     * @throws RuntimeException When an empty ID is provided
+     */
+    public static function isInSameNamespace(string $id, string $namespace): bool
     {
         if ($id === '') {
             throw new RuntimeException('Empty ID is not allowed');
@@ -29,7 +48,17 @@ class IdUtils
         return $idns === $namespace;
     }
 
-    public static function getRelativeID($targetId, $reference)
+    /**
+     * Calculate a relative path between two page IDs
+     *
+     * This method creates a relative path from a reference page to a target page,
+     * using DokuWiki's namespace notation with '..' for parent directories.
+     *
+     * @param string $targetId The target page ID
+     * @param string $reference The reference page ID
+     * @return string The relative path from reference to target
+     */
+    public static function getRelativeID(string $targetId, string $reference): string
     {
         $idNS = explode(':', $targetId);
         $id = array_pop($idNS);
