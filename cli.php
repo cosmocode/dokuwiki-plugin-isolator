@@ -15,17 +15,22 @@ class cli_plugin_isolator extends \dokuwiki\Extension\CLIPlugin
     /** @inheritDoc */
     protected function setup(Options $options)
     {
-        $options->setHelp('FIXME: What does this CLI do?');
+        $options->setHelp('Ensure the media data of the given namespace is isolated in that given namespace.');
 
         // main arguments
-        $options->registerArgument('namespace', 'The namespace to isola', 'true');
+        $options->registerArgument('namespace', 'The namespace to isolate', 'true');
 
         // options
-        // $options->registerOption('FIXME:longOptionName', 'FIXME: helptext for option', 'FIXME: optional shortkey', 'FIXME:needs argument? true|false', 'FIXME:if applies only to subcommand: subcommandName');
-
-        // sub-commands and their arguments
-        // $options->registerCommand('FIXME:subcommandName', 'FIXME:subcommand description');
-        // $options->registerArgument('FIXME:subcommandArgumentName', 'FIXME:subcommand-argument description', 'FIXME:required? true|false', 'FIXME:subcommandName');
+        $options->registerOption(
+            'dry-run',
+            'Only show what would happen, do not actually do anything',
+            'd'
+        );
+        $options->registerOption(
+            'strict',
+            'Media must be in exactly the same namespace as the page, not just within the given namespace',
+            's'
+        );
     }
 
     /** @inheritDoc */
@@ -34,7 +39,7 @@ class cli_plugin_isolator extends \dokuwiki\Extension\CLIPlugin
         // $command = $options->getCmd()
         $arguments = $options->getArgs();
 
-            $this->isolate($arguments[0]);
+        $this->isolate($arguments[0]);
     }
 
 
@@ -82,7 +87,7 @@ class cli_plugin_isolator extends \dokuwiki\Extension\CLIPlugin
 
         //add modes to parser
         $modes = p_get_parsermodes();
-        foreach($modes as $mode) {
+        foreach ($modes as $mode) {
             $Parser->addMode($mode['mode'], $mode['obj']);
         }
 
