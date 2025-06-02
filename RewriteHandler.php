@@ -105,5 +105,4 @@ class RewriteHandler
     {
         return $this->wikitext;
     }
-
 }

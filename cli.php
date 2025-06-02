@@ -1,5 +1,6 @@
 <?php
 
+use dokuwiki\Extension\CLIPlugin;
 use dokuwiki\Parsing\Parser;
 use dokuwiki\plugin\isolator\RewriteHandler;
 use splitbrain\phpcli\Options;
@@ -10,7 +11,7 @@ use splitbrain\phpcli\Options;
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author  Andreas Gohr <dokuwiki@cosmocode.de>
  */
-class cli_plugin_isolator extends \dokuwiki\Extension\CLIPlugin
+class cli_plugin_isolator extends CLIPlugin
 {
     /** @inheritDoc */
     protected function setup(Options $options)
@@ -65,7 +66,6 @@ class cli_plugin_isolator extends \dokuwiki\Extension\CLIPlugin
             $this->processPage($pageID, $namespace);
             echo "\n";
         }
-
     }
 
 
