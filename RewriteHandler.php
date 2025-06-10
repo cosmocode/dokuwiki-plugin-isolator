@@ -12,29 +12,25 @@ use dokuwiki\Logger;
  * This class processes DokuWiki markup and rewrites media references to ensure
  * they are properly isolated within the target namespace. It handles both strict
  * and non-strict modes for namespace isolation.
+ *
+ * This class is heavily inspired by the move plugin's rewriting mechanism, implementing a
+ * similar fake DokuHandler.
  */
 class RewriteHandler
 {
+    /** @var array Callstack for compatibility with DokuHandler */
     public $calls = [];
 
-    /**
-     * @var string This handler does not create calls, but rather recreates wiki text in one go.
-     */
+    /** @var string This handler does not create calls, but rather recreates wiki text in one go. */
     protected $wikitext = '';
 
-    /**
-     * @var string The ID of the page being processed
-     */
+    /** @var string The ID of the page being processed */
     protected $id;
 
-    /**
-     * @var string The namespace we're processing
-     */
+    /** @var string The namespace we're processing */
     protected $ns;
 
-    /**
-     * @var bool Whether to use strict mode (exact namespace match)
-     */
+    /** @var bool Whether to use strict mode (exact namespace match) */
     protected $strict;
 
     /** @var array The media files to copy */
@@ -112,14 +108,15 @@ class RewriteHandler
     /**
      * Handle rewriting of plugin syntax, calls the registered handlers
      *
-     * @param string $match      The text match
-     * @param string $state      The starte of the parser
-     * @param int    $pos        The position in the input
+     * @param string $match The text match
+     * @param string $state The starte of the parser
+     * @param int $pos The position in the input
      * @param string $pluginname The name of the plugin
      * @return bool If parsing should be continued
      */
-    public function plugin($match, $state, $pos, $pluginname) {
-        if(isset($this->handlers[$pluginname])) {
+    public function plugin($match, $state, $pos, $pluginname)
+    {
+        if (isset($this->handlers[$pluginname])) {
             $this->wikitext .= call_user_func($this->handlers[$pluginname], $match, $state, $pos, $pluginname, $this);
         } else {
             $this->wikitext .= $match;
