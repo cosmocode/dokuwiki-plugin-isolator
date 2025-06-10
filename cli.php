@@ -71,11 +71,11 @@ class cli_plugin_isolator extends \dokuwiki\Extension\CLIPlugin
 
     protected function processPage($id, $ns)
     {
-        $text = rawWiki($id);
+        $old = rawWiki($id);
 
         // Create the parser
         $Parser = new Parser(new Doku_Handler());
-        $Handler = new RewriteHandler($id, $ns); // FIXME pass info via constructor
+        $Handler = new RewriteHandler($id, $ns);
 
 
         // Use reflectiion to actually use our own handler
@@ -91,8 +91,21 @@ class cli_plugin_isolator extends \dokuwiki\Extension\CLIPlugin
             $Parser->addMode($mode['mode'], $mode['obj']);
         }
 
-        $Parser->parse($text);
+        // parse
+        $Parser->parse($old);
         $new = $Handler->getWikiText();
+
+        // new revision?
+        if($new != $old) {
+            saveWikiText($id, $new, 'Isolated media files in namespace ' . $ns);
+        }
+
+        // copy media files
+        $toCopy = $Handler->getCopyList();
+        foreach ($toCopy as $from => $to) {
+            media_save(['name' => mediaFN($from)], $to, false, AUTH_ADMIN, 'copy');
+        }
+
         return $new;
     }
 }

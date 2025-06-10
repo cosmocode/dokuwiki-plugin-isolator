@@ -24,6 +24,9 @@ class RewriteHandler
      */
     protected $ns;
 
+    /** @var array The media files to copy */
+    protected $toCopy = [];
+
     /**
      * @var MediaResolver
      */
@@ -35,7 +38,6 @@ class RewriteHandler
         $this->ns = $namespace;
         $this->mediaResolver = new MediaResolver($id);
     }
-
 
     public function media($match, $state, $pos)
     {
@@ -49,8 +51,8 @@ class RewriteHandler
 
                 if (!IdUtils::isInNamespace($resolved, $this->ns)) {
                     $local = $this->ns .= ':' . getID($resolved);
-
                     echo 'Media is not in namespace ' . $this->ns . ', copying it to: ' . $local . "\n";
+                    $this->toCopy[$resolved] = $local;
                 } else {
                     $local = $resolved;
                 }
@@ -106,4 +108,13 @@ class RewriteHandler
         return $this->wikitext;
     }
 
+    /**
+     * Get the list of media files that need to be copied
+     *
+     * @return array An associative array of media files to copy, keys are source IDs and values are destination IDs
+     */
+    public function getCopyList()
+    {
+        return $this->toCopy;
+    }
 }
