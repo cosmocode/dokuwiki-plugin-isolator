@@ -24,6 +24,11 @@ class RewriteHandler
      */
     protected $ns;
 
+    /**
+     * @var bool Whether to use strict mode (exact namespace match)
+     */
+    protected $strict;
+
     /** @var array The media files to copy */
     protected $toCopy = [];
 
@@ -32,10 +37,11 @@ class RewriteHandler
      */
     protected $mediaResolver;
 
-    public function __construct($id, $namespace)
+    public function __construct($id, $namespace, $strict = false)
     {
         $this->id = $id;
         $this->ns = $namespace;
+        $this->strict = $strict;
         $this->mediaResolver = new MediaResolver($id);
     }
 
@@ -49,8 +55,12 @@ class RewriteHandler
 
                 echo "\nMedia ID: $mediaID\n";
 
-                if (!IdUtils::isInNamespace($resolved, $this->ns)) {
-                    $local = $this->ns .= ':' . getID($resolved);
+                $isInCorrectNamespace = $this->strict 
+                    ? IdUtils::isInSameNamespace($resolved, $this->ns)
+                    : IdUtils::isInNamespace($resolved, $this->ns);
+
+                if (!$isInCorrectNamespace) {
+                    $local = $this->ns . ':' . getID($resolved);
                     echo 'Media is not in namespace ' . $this->ns . ', copying it to: ' . $local . "\n";
                     $this->toCopy[$resolved] = $local;
                 } else {

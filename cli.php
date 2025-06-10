@@ -36,76 +36,19 @@ class cli_plugin_isolator extends \dokuwiki\Extension\CLIPlugin
     /** @inheritDoc */
     protected function main(Options $options)
     {
-        // $command = $options->getCmd()
         $arguments = $options->getArgs();
-
-        $this->isolate($arguments[0]);
-    }
-
-
-    protected function isolate($namespace)
-    {
-        global $conf;
-
-        $pagedir = $conf['datadir'];
-        $namespacedir = utf8_encodeFN($namespace);
-
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator("$pagedir/$namespacedir", \FilesystemIterator::SKIP_DOTS)
+        $namespace = $arguments[0];
+        
+        $dryRun = $options->getOpt('dry-run');
+        $strict = $options->getOpt('strict');
+        
+        $processor = new \dokuwiki\plugin\isolator\Processor(
+            $namespace,
+            $dryRun,
+            $strict,
+            function($message) { echo $message; }
         );
-
-        foreach ($iterator as $file) {
-            if (!$file->isFile()) continue;
-            $fullPath = $file->getPathname();
-            if (!preg_match('/\.txt$/', $fullPath)) continue; // only process text files
-            $relativePath = preg_replace('/^' . preg_quote("$pagedir/", '/') . '/', '', $fullPath);
-            $pageID = pathID($relativePath);
-
-            echo $pageID;
-            $this->processPage($pageID, $namespace);
-            echo "\n";
-        }
-
-    }
-
-
-    protected function processPage($id, $ns)
-    {
-        $old = rawWiki($id);
-
-        // Create the parser
-        $Parser = new Parser(new Doku_Handler());
-        $Handler = new RewriteHandler($id, $ns);
-
-
-        // Use reflectiion to actually use our own handler
-        $reflectParser = new ReflectionClass(Parser::class);
-        $handlerProperty = $reflectParser->getProperty('handler');
-        $handlerProperty->setAccessible(true);
-        $handlerProperty->setValue($Parser, $Handler);
-
-
-        //add modes to parser
-        $modes = p_get_parsermodes();
-        foreach ($modes as $mode) {
-            $Parser->addMode($mode['mode'], $mode['obj']);
-        }
-
-        // parse
-        $Parser->parse($old);
-        $new = $Handler->getWikiText();
-
-        // new revision?
-        if($new != $old) {
-            saveWikiText($id, $new, 'Isolated media files in namespace ' . $ns);
-        }
-
-        // copy media files
-        $toCopy = $Handler->getCopyList();
-        foreach ($toCopy as $from => $to) {
-            media_save(['name' => mediaFN($from)], $to, false, AUTH_ADMIN, 'copy');
-        }
-
-        return $new;
+        
+        $processor->isolate();
     }
 }
