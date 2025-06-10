@@ -52,24 +52,18 @@ class RewriteHandler
             $mediaID = $extract[1];
             if (!preg_match('/^(https?:\/\/)/', $mediaID)) {
                 $resolved = $this->mediaResolver->resolveId($mediaID);
-
-                echo "\nMedia ID: $mediaID\n";
-
-                $isInCorrectNamespace = $this->strict 
+                $isInCorrectNamespace = $this->strict
                     ? IdUtils::isInSameNamespace($resolved, $this->ns)
                     : IdUtils::isInNamespace($resolved, $this->ns);
 
                 if (!$isInCorrectNamespace) {
-                    $local = $this->ns . ':' . getID($resolved);
-                    echo 'Media is not in namespace ' . $this->ns . ', copying it to: ' . $local . "\n";
+                    $local = $this->ns . ':' . noNS($resolved);
                     $this->toCopy[$resolved] = $local;
                 } else {
                     $local = $resolved;
                 }
 
                 $relative = IdUtils::getRelativeID($local, $this->id);
-                echo 'Relative media ID: ' . $relative . "\n";
-
                 $match = preg_replace('/' . preg_quote($mediaID, '/') . '/', $relative, $match);
             }
         } else {
@@ -105,7 +99,7 @@ class RewriteHandler
     public function finalize()
     {
         // remove padding that is added by the parser in parse()
-        $this->wikitext = substr($this->wikitext, 1, -1);
+        $this->wikitext = preg_replace('/^\n|\n$/', '', $this->wikitext);
     }
 
     /**
