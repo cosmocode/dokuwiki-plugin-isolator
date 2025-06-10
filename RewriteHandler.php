@@ -2,6 +2,7 @@
 
 namespace dokuwiki\plugin\isolator;
 
+use dokuwiki\Extension\CLIPlugin;
 use dokuwiki\File\MediaResolver;
 use dokuwiki\Logger;
 
@@ -32,16 +33,18 @@ class RewriteHandler
     /** @var array The media files to copy */
     protected $toCopy = [];
 
-    /**
-     * @var MediaResolver
-     */
+    /** @var MediaResolver */
     protected $mediaResolver;
 
-    public function __construct($id, $namespace, $strict = false)
+    /** @var CLIPlugin|null Logger instance */
+    protected $logger;
+
+    public function __construct($id, $namespace, $strict = false, ?CLIPlugin $logger = null)
     {
         $this->id = $id;
         $this->ns = $namespace;
         $this->strict = $strict;
+        $this->logger = $logger;
         $this->mediaResolver = new MediaResolver($id);
     }
 
@@ -64,15 +67,19 @@ class RewriteHandler
                 }
 
                 $relative = IdUtils::getRelativeID($local, $this->id);
-                $match = preg_replace('/' . preg_quote($mediaID, '/') . '/', $relative, $match);
+                if ($mediaID != $relative) {
+                    $debug = "Adjusting media ID '$mediaID' to relative '$relative'";
+                    $this->logger ? $this->logger->debug($debug) : Logger::debug($debug);
+                    $match = preg_replace('/' . preg_quote($mediaID, '/') . '/', $relative, $match);
+                }
             }
         } else {
-            Logger::error(
-                'Failed to extract media ID from match: ' . $match
-            );
+            $error = 'Failed to extract media ID from match: ' . $match;
+            $this->logger ? $this->logger->error($error) : Logger::error($error);
         }
 
         $this->wikitext .= $match;
+        return true;
     }
 
     /**
@@ -88,12 +95,29 @@ class RewriteHandler
             $this->wikitext .= $params[0];
             return true;
         } else {
-            Logger::error(
-                'Error, handler function ' . $name . ' with ' . count($params) .
-                ' parameters called which isn\'t implemented'
-            );
+            $error = 'Error, handler function ' . $name . ' with ' . count($params) .
+                ' parameters called which isn\'t implemented';
+            $this->logger ? $this->logger->error($error) : Logger::error($error);
             return false;
         }
+    }
+
+    /**
+     * Handle rewriting of plugin syntax, calls the registered handlers
+     *
+     * @param string $match      The text match
+     * @param string $state      The starte of the parser
+     * @param int    $pos        The position in the input
+     * @param string $pluginname The name of the plugin
+     * @return bool If parsing should be continued
+     */
+    public function plugin($match, $state, $pos, $pluginname) {
+        if(isset($this->handlers[$pluginname])) {
+            $this->wikitext .= call_user_func($this->handlers[$pluginname], $match, $state, $pos, $pluginname, $this);
+        } else {
+            $this->wikitext .= $match;
+        }
+        return true;
     }
 
     public function finalize()

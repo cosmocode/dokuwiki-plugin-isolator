@@ -2,8 +2,8 @@
 
 namespace dokuwiki\plugin\isolator;
 
+use dokuwiki\Extension\CLIPlugin;
 use dokuwiki\Parsing\Parser;
-use dokuwiki\plugin\isolator\RewriteHandler;
 
 class Processor
 {
@@ -16,13 +16,13 @@ class Processor
     /** @var bool Whether to use strict mode */
     protected $strict;
 
-    /** @var \dokuwiki\Extension\CLIPlugin|\dokuwiki\Logger|null Logger instance */
+    /** @var CLIPlugin|null Logger instance */
     protected $logger;
 
     /** @var array Results from processing */
     protected $results = [];
 
-    public function __construct($namespace, $dryRun = false, $strict = false, $logger = null)
+    public function __construct($namespace, $dryRun = false, $strict = false, ?CLIPlugin $logger = null)
     {
         $this->namespace = $namespace;
         $this->dryRun = $dryRun;
@@ -52,10 +52,8 @@ class Processor
             $relativePath = preg_replace('/^' . preg_quote("$pagedir/", '/') . '/', '', $fullPath);
             $pageID = pathID($relativePath);
 
-            $this->log($pageID);
             $result = $this->processPage($pageID);
             $this->results[$pageID] = $result;
-            $this->log("\n");
         }
     }
 
@@ -67,14 +65,9 @@ class Processor
      */
     public function processPage($id)
     {
-        // Parse and rewrite the page
+        $this->log('notice', "Processing page '$id'");
         $rewriteResult = $this->parseAndRewritePage($id);
-
-        // Apply changes if not in dry-run mode
-        if (!$this->dryRun) {
-            $this->applyChanges($id, $rewriteResult);
-        }
-
+        $this->applyChanges($id, $rewriteResult);
         return $rewriteResult;
     }
 
@@ -90,7 +83,7 @@ class Processor
 
         // Create the parser
         $Parser = new Parser(new \Doku_Handler());
-        $Handler = new RewriteHandler($id, $this->namespace, $this->strict);
+        $Handler = new RewriteHandler($id, $this->namespace, $this->strict, $this->logger);
 
         // Use reflection to actually use our own handler
         $reflectParser = new \ReflectionClass(Parser::class);
@@ -111,7 +104,7 @@ class Processor
         return [
             'old' => $old,
             'new' => $new,
-            'changed' => $new != $old,
+            'changed' => trim($new) != trim($old),
             'copyList' => $Handler->getCopyList()
         ];
     }
@@ -126,12 +119,31 @@ class Processor
     {
         // Save new revision if changed
         if ($rewriteResult['changed']) {
-            saveWikiText($id, $rewriteResult['new'], 'Isolated media files in namespace ' . $this->namespace);
+            $this->log('info', "Rewriting media references in page '$id'");
+
+            // calculate a diff only if debug is enabled
+            if ($this->logger instanceof CLIPlugin && $this->logger->isLogLevelEnabled('debug')) {
+                $diff = new \Diff(
+                    explode("\n", $rewriteResult['old']),
+                    explode("\n", $rewriteResult['new'])
+                );
+                $unified = new \UnifiedDiffFormatter(1);
+                $diffText = $unified->format($diff);
+                $this->log('debug', $diffText);
+            }
+
+            if (!$this->dryRun) {
+                saveWikiText($id, $rewriteResult['new'], 'Isolated media files in namespace ' . $this->namespace);
+            }
+
         }
 
         // Copy media files
         foreach ($rewriteResult['copyList'] as $from => $to) {
-            media_save(['name' => mediaFN($from)], $to, false, AUTH_ADMIN, 'copy');
+            $this->log('info', "Copying media file '$from' to '$to'");
+            if (!$this->dryRun) {
+                media_save(['name' => mediaFN($from)], $to, false, AUTH_ADMIN, 'copy');
+            }
         }
     }
 
@@ -146,26 +158,18 @@ class Processor
     }
 
     /**
-     * Log a message
+     * Log a message if a logger is set
      *
+     * @param string $level
      * @param string $message The message to log
+     * @param array $context
      */
-    protected function log($message)
+    protected function log($level, $message, $context = [])
     {
         if ($this->logger === null) {
-            echo $message;
             return;
         }
 
-        if ($this->logger instanceof \dokuwiki\Extension\CLIPlugin) {
-            // CLIPlugin has info() method for logging
-            $this->logger->info($message);
-        } elseif ($this->logger instanceof \dokuwiki\Logger) {
-            // Logger has log() method
-            $this->logger->log($message);
-        } else {
-            // Fallback for any other type
-            echo $message;
-        }
+        $this->logger->log($level, $message, $context);
     }
 }

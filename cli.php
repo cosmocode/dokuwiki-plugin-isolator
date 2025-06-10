@@ -1,6 +1,7 @@
 <?php
 
 use dokuwiki\Parsing\Parser;
+use dokuwiki\plugin\isolator\Processor;
 use dokuwiki\plugin\isolator\RewriteHandler;
 use splitbrain\phpcli\Options;
 
@@ -38,17 +39,17 @@ class cli_plugin_isolator extends \dokuwiki\Extension\CLIPlugin
     {
         $arguments = $options->getArgs();
         $namespace = $arguments[0];
-        
+
         $dryRun = $options->getOpt('dry-run');
         $strict = $options->getOpt('strict');
-        
-        $processor = new \dokuwiki\plugin\isolator\Processor(
+
+        $processor = new Processor(
             $namespace,
             $dryRun,
             $strict,
             $this
         );
-        
+
         $processor->isolate();
     }
 }
