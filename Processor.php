@@ -71,15 +71,15 @@ class Processor
     public function processPage($id, $ns = null)
     {
         $namespace = $ns ?: $this->namespace;
-        
+
         // Parse and rewrite the page
         $rewriteResult = $this->parseAndRewritePage($id, $namespace);
-        
+
         // Apply changes if not in dry-run mode
         if (!$this->dryRun) {
             $this->applyChanges($id, $rewriteResult, $namespace);
         }
-        
+
         return $rewriteResult;
     }
 
@@ -95,11 +95,11 @@ class Processor
         $old = rawWiki($id);
 
         // Create the parser
-        $Parser = new Parser(new Doku_Handler());
+        $Parser = new Parser(new \Doku_Handler());
         $Handler = new RewriteHandler($id, $namespace, $this->strict);
 
         // Use reflection to actually use our own handler
-        $reflectParser = new ReflectionClass(Parser::class);
+        $reflectParser = new \ReflectionClass(Parser::class);
         $handlerProperty = $reflectParser->getProperty('handler');
         $handlerProperty->setAccessible(true);
         $handlerProperty->setValue($Parser, $Handler);
