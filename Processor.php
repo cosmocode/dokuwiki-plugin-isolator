@@ -32,14 +32,12 @@ class Processor
 
     /**
      * Isolate media files in the given namespace
-     *
-     * @param string $namespace The namespace to isolate
      */
-    public function isolate($namespace = null)
+    public function isolate()
     {
         global $conf;
 
-        $ns = $namespace ?: $this->namespace;
+        $ns = $this->namespace;
         $pagedir = $conf['datadir'];
         $namespacedir = utf8_encodeFN($ns);
 
@@ -55,7 +53,7 @@ class Processor
             $pageID = pathID($relativePath);
 
             $this->log($pageID);
-            $result = $this->processPage($pageID, $ns);
+            $result = $this->processPage($pageID);
             $this->results[$pageID] = $result;
             $this->log("\n");
         }
@@ -65,19 +63,16 @@ class Processor
      * Process a single page
      *
      * @param string $id The page ID
-     * @param string $ns The namespace
      * @return array Processing results
      */
-    public function processPage($id, $ns = null)
+    public function processPage($id)
     {
-        $namespace = $ns ?: $this->namespace;
-
         // Parse and rewrite the page
-        $rewriteResult = $this->parseAndRewritePage($id, $namespace);
+        $rewriteResult = $this->parseAndRewritePage($id);
 
         // Apply changes if not in dry-run mode
         if (!$this->dryRun) {
-            $this->applyChanges($id, $rewriteResult, $namespace);
+            $this->applyChanges($id, $rewriteResult);
         }
 
         return $rewriteResult;
@@ -87,16 +82,15 @@ class Processor
      * Parse and rewrite a page's content
      *
      * @param string $id The page ID
-     * @param string $namespace The namespace
      * @return array Rewrite results containing old text, new text, and copy list
      */
-    public function parseAndRewritePage($id, $namespace)
+    public function parseAndRewritePage($id)
     {
         $old = rawWiki($id);
 
         // Create the parser
         $Parser = new Parser(new \Doku_Handler());
-        $Handler = new RewriteHandler($id, $namespace, $this->strict);
+        $Handler = new RewriteHandler($id, $this->namespace, $this->strict);
 
         // Use reflection to actually use our own handler
         $reflectParser = new \ReflectionClass(Parser::class);
@@ -127,13 +121,12 @@ class Processor
      *
      * @param string $id The page ID
      * @param array $rewriteResult The rewrite results
-     * @param string $namespace The namespace
      */
-    public function applyChanges($id, $rewriteResult, $namespace)
+    public function applyChanges($id, $rewriteResult)
     {
         // Save new revision if changed
         if ($rewriteResult['changed']) {
-            saveWikiText($id, $rewriteResult['new'], 'Isolated media files in namespace ' . $namespace);
+            saveWikiText($id, $rewriteResult['new'], 'Isolated media files in namespace ' . $this->namespace);
         }
 
         // Copy media files
