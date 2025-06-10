@@ -42,6 +42,14 @@ class RewriteHandler
     /** @var CLIPlugin|null Logger instance */
     protected $logger;
 
+    /**
+     * Constructor
+     *
+     * @param string $id The ID of the page being processed
+     * @param string $namespace The namespace we're processing
+     * @param bool $strict Whether to use strict mode (exact namespace match)
+     * @param CLIPlugin|null $logger Logger instance for output
+     */
     public function __construct($id, $namespace, $strict = false, ?CLIPlugin $logger = null)
     {
         $this->id = $id;
@@ -51,6 +59,14 @@ class RewriteHandler
         $this->mediaResolver = new MediaResolver($id);
     }
 
+    /**
+     * Handle media syntax and rewrite media references
+     *
+     * @param string $match The matched text
+     * @param int $state The parser state
+     * @param int $pos The position in the text
+     * @return bool Always returns true to continue parsing
+     */
     public function media($match, $state, $pos)
     {
         if (preg_match('/\{\{\s*([^?|\s}]+)/', $match, $extract)) {
@@ -124,9 +140,13 @@ class RewriteHandler
         return true;
     }
 
+    /**
+     * Finalize the rewriting process
+     *
+     * Removes padding that is added by the parser during parse()
+     */
     public function finalize()
     {
-        // remove padding that is added by the parser in parse()
         $this->wikitext = preg_replace('/^\n|\n$/', '', $this->wikitext);
     }
 
