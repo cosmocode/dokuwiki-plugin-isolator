@@ -66,7 +66,7 @@ class IdUtils
         array_pop($refNS);
 
         // Remove common namespace parts
-        while (!empty($idNS) && !empty($refNS) && $idNS[0] === $refNS[0]) {
+        while ($idNS !== [] && $refNS !== [] && $idNS[0] === $refNS[0]) {
             array_shift($idNS);
             array_shift($refNS);
         }

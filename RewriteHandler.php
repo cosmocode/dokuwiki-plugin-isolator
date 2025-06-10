@@ -18,6 +18,9 @@ use dokuwiki\Logger;
  */
 class RewriteHandler
 {
+    /** @var array Handlers for compatibility with DokuHandler */
+    public $handlers = [];
+
     /** @var array Callstack for compatibility with DokuHandler */
     public $calls = [];
 

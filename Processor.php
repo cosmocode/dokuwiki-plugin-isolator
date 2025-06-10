@@ -142,7 +142,6 @@ class Processor
             if (!$this->dryRun) {
                 saveWikiText($id, $rewriteResult['new'], 'Isolated media files in namespace ' . $this->namespace);
             }
-
         }
 
         // Copy media files
