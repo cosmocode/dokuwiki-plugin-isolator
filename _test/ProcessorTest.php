@@ -51,12 +51,12 @@ class ProcessorTest extends DokuWikiTest
 
         $this->assertTrue($result['changed']);
         $this->assertNotEmpty($result['copyList']);
-        $this->assertArrayHasKey('other:image4', $result['copyList']);
-        $this->assertEquals('test:image4.jpg', $result['copyList']['other:image4']);
+        $this->assertArrayHasKey('other:image4.jpg', $result['copyList']);
+        $this->assertEquals('test:image4.jpg', $result['copyList']['other:image4.jpg']);
         
         // Verify the content was actually changed to use relative reference
-        $this->assertStringContains('{{image4.jpg}}', $result['new']);
-        $this->assertStringNotContains('{{other:image4.jpg}}', $result['new']);
+        $this->assertStringContainsString('{{image4.jpg}}', $result['new']);
+        $this->assertStringNotContainsString('{{other:image4.jpg}}', $result['new']);
     }
     public function testProcessPageWithLocalMedia()
     {
@@ -70,8 +70,8 @@ class ProcessorTest extends DokuWikiTest
         
         // But should still adjust reference to be relative if it was absolute
         $this->assertTrue($result['changed']);
-        $this->assertStringContains('{{image1.jpg}}', $result['new']);
-        $this->assertStringNotContains('{{test:image1.jpg}}', $result['new']);
+        $this->assertStringContainsString('{{image1.jpg}}', $result['new']);
+        $this->assertStringNotContainsString('{{test:image1.jpg}}', $result['new']);
     }
     public function testStrictModeVsNonStrict()
     {
@@ -85,11 +85,14 @@ class ProcessorTest extends DokuWikiTest
         $processorStrict = new Processor('test', true, true);
         $resultStrict = $processorStrict->processPage('test:subns:page3');
 
-        // In non-strict mode, test:image2.png should be considered "in namespace"
-        $this->assertFalse($resultNonStrict['changed']);
+        // In non-strict mode, test:image2.png should be considered "in namespace" 
+        // but reference should still be adjusted to relative
+        $this->assertTrue($resultNonStrict['changed']);
+        $this->assertEmpty($resultNonStrict['copyList']); // No copying in non-strict mode
 
         // In strict mode, test:image2.png should be moved to test:subns:
         $this->assertTrue($resultStrict['changed']);
+        $this->assertNotEmpty($resultStrict['copyList']); // Should copy in strict mode
     }
     public function testIsolateProcessesMultiplePages()
     {
@@ -125,8 +128,8 @@ class ProcessorTest extends DokuWikiTest
 
         $this->assertTrue($result['changed']);
         $this->assertEmpty($result['copyList']); // No copying needed in normal mode
-        $this->assertStringContains('{{..:qux.jpg}}', $result['new']);
-        $this->assertStringNotContains('{{foo:qux.jpg}}', $result['new']);
+        $this->assertStringContainsString('{{..:qux.jpg}}', $result['new']);
+        $this->assertStringNotContainsString('{{foo:qux.jpg}}', $result['new']);
 
         // Test strict mode - should copy media to foo:bar: and adjust reference
         $processorStrict = new Processor('foo', true, true);
@@ -134,9 +137,9 @@ class ProcessorTest extends DokuWikiTest
 
         $this->assertTrue($resultStrict['changed']);
         $this->assertNotEmpty($resultStrict['copyList']);
-        $this->assertArrayHasKey('foo:qux', $resultStrict['copyList']);
-        $this->assertEquals('foo:bar:qux.jpg', $resultStrict['copyList']['foo:qux']);
-        $this->assertStringContains('{{qux.jpg}}', $resultStrict['new']);
+        $this->assertArrayHasKey('foo:qux.jpg', $resultStrict['copyList']);
+        $this->assertEquals('foo:bar:qux.jpg', $resultStrict['copyList']['foo:qux.jpg']);
+        $this->assertStringContainsString('{{qux.jpg}}', $resultStrict['new']);
 
     }
 
@@ -150,8 +153,8 @@ class ProcessorTest extends DokuWikiTest
 
         $this->assertTrue($result['changed']);
         $this->assertEmpty($result['copyList']); // No copying needed, just reference adjustment
-        $this->assertStringContains('{{image1.jpg}}', $result['new']);
-        $this->assertStringNotContains('{{test:image1.jpg}}', $result['new']);
+        $this->assertStringContainsString('{{image1.jpg}}', $result['new']);
+        $this->assertStringNotContainsString('{{test:image1.jpg}}', $result['new']);
 
     }
 
