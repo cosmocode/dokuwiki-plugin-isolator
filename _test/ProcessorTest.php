@@ -13,8 +13,10 @@ use dokuwiki\plugin\isolator\Processor;
  */
 class ProcessorTest extends DokuWikiTest
 {
-    protected function createTestData()
+    public function setUp(): void
     {
+        parent::setUp();
+
         // Create test pages with media references
         saveWikiText('test:page1', '{{other:image4.jpg}} Some content with external media', 'Test setup');
         saveWikiText('test:page2', '{{test:image1.jpg}} Content with local media', 'Test setup');
@@ -36,16 +38,8 @@ class ProcessorTest extends DokuWikiTest
         }
     }
 
-    public function testConstructor()
-    {
-        $processor = new Processor('test');
-        $this->assertInstanceOf(Processor::class, $processor);
-    }
-
     public function testProcessPageWithExternalMedia()
     {
-        $this->createTestData();
-        
         $processor = new Processor('test', true, false);
         $result = $processor->processPage('test:page1');
 
@@ -53,30 +47,28 @@ class ProcessorTest extends DokuWikiTest
         $this->assertNotEmpty($result['copyList']);
         $this->assertArrayHasKey('other:image4.jpg', $result['copyList']);
         $this->assertEquals('test:image4.jpg', $result['copyList']['other:image4.jpg']);
-        
+
         // Verify the content was actually changed to use relative reference
         $this->assertStringContainsString('{{image4.jpg}}', $result['new']);
         $this->assertStringNotContainsString('{{other:image4.jpg}}', $result['new']);
     }
+
     public function testProcessPageWithLocalMedia()
     {
-        $this->createTestData();
-        
         $processor = new Processor('test', true, false);
         $result = $processor->processPage('test:page2');
 
         // Should not copy since media is already in namespace
         $this->assertEmpty($result['copyList']);
-        
+
         // But should still adjust reference to be relative if it was absolute
         $this->assertTrue($result['changed']);
         $this->assertStringContainsString('{{image1.jpg}}', $result['new']);
         $this->assertStringNotContainsString('{{test:image1.jpg}}', $result['new']);
     }
+
     public function testStrictModeVsNonStrict()
     {
-        $this->createTestData();
-        
         // Non-strict mode: subnamespace media should not be moved
         $processorNonStrict = new Processor('test', true, false);
         $resultNonStrict = $processorNonStrict->processPage('test:subns:page3');
@@ -85,7 +77,7 @@ class ProcessorTest extends DokuWikiTest
         $processorStrict = new Processor('test', true, true);
         $resultStrict = $processorStrict->processPage('test:subns:page3');
 
-        // In non-strict mode, test:image2.png should be considered "in namespace" 
+        // In non-strict mode, test:image2.png should be considered "in namespace"
         // but reference should still be adjusted to relative
         $this->assertTrue($resultNonStrict['changed']);
         $this->assertEmpty($resultNonStrict['copyList']); // No copying in non-strict mode
@@ -94,10 +86,9 @@ class ProcessorTest extends DokuWikiTest
         $this->assertTrue($resultStrict['changed']);
         $this->assertNotEmpty($resultStrict['copyList']); // Should copy in strict mode
     }
+
     public function testIsolateProcessesMultiplePages()
     {
-        $this->createTestData();
-        
         $processor = new Processor('test', true, false);
         $processor->isolate();
 
@@ -112,11 +103,12 @@ class ProcessorTest extends DokuWikiTest
         });
         $this->assertNotEmpty($testPages);
     }
+
     public function testUseCaseExample()
     {
         // Create the specific scenario from UseCase.md
         saveWikiText('foo:bar:baz', '{{foo:qux.jpg}} Content with media reference', 'Test setup');
-        
+
         // Create the media file
         $mediaFile = mediaFN('foo:qux.jpg');
         io_makeFileDir($mediaFile);
@@ -169,6 +161,5 @@ class ProcessorTest extends DokuWikiTest
 
         $this->assertFalse($result['changed']);
         $this->assertEmpty($result['copyList']);
-
     }
 }
