@@ -8,6 +8,10 @@ use splitbrain\phpcli\Options;
 /**
  * DokuWiki Plugin isolator (CLI Component)
  *
+ * Command-line interface for the isolator plugin that ensures media data
+ * of a given namespace is isolated within that namespace. Provides options
+ * for dry-run mode and strict namespace matching.
+ *
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author  Andreas Gohr <dokuwiki@cosmocode.de>
  */

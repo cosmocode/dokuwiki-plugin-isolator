@@ -6,6 +6,13 @@ use dokuwiki\Extension\CLIPlugin;
 use dokuwiki\File\MediaResolver;
 use dokuwiki\Logger;
 
+/**
+ * Handler for rewriting DokuWiki syntax to isolate media files within namespaces
+ *
+ * This class processes DokuWiki markup and rewrites media references to ensure
+ * they are properly isolated within the target namespace. It handles both strict
+ * and non-strict modes for namespace isolation.
+ */
 class RewriteHandler
 {
     public $calls = [];

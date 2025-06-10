@@ -5,6 +5,13 @@ namespace dokuwiki\plugin\isolator;
 use dokuwiki\Extension\CLIPlugin;
 use dokuwiki\Parsing\Parser;
 
+/**
+ * Main processor for isolating media files within DokuWiki namespaces
+ *
+ * This class handles the complete workflow of processing pages within a namespace,
+ * rewriting media references, and copying media files to ensure proper isolation.
+ * Supports both dry-run and strict modes for different use cases.
+ */
 class Processor
 {
     /** @var string The namespace to process */
