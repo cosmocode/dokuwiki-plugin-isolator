@@ -13,53 +13,6 @@ use dokuwiki\plugin\isolator\Processor;
  */
 class ProcessorTest extends DokuWikiTest
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->createTestData();
-    }
-
-    protected function tearDown(): void
-    {
-        $this->cleanupTestData();
-        parent::tearDown();
-    }
-
-    protected function cleanupTestData()
-    {
-        // Clean up test pages
-        $testPages = [
-            'test:page1',
-            'test:page2',
-            'test:subns:page3',
-            'other:page4',
-            'foo:bar:baz',
-            'test:subpage'
-        ];
-
-        foreach ($testPages as $page) {
-            if (page_exists($page)) {
-                saveWikiText($page, '', 'Test cleanup');
-            }
-        }
-
-        // Clean up test media
-        $testMedia = [
-            'test:image1.jpg',
-            'test:image2.png',
-            'test:subns:image3.gif',
-            'other:image4.jpg',
-            'foo:qux.jpg'
-        ];
-
-        foreach ($testMedia as $media) {
-            $file = mediaFN($media);
-            if (file_exists($file)) {
-                unlink($file);
-            }
-        }
-    }
-
     protected function createTestData()
     {
         // Create test pages with media references
@@ -91,6 +44,8 @@ class ProcessorTest extends DokuWikiTest
 
     public function testProcessPageWithExternalMedia()
     {
+        $this->createTestData();
+        
         $processor = new Processor('test', true, false);
         $result = $processor->processPage('test:page1');
 
@@ -105,6 +60,8 @@ class ProcessorTest extends DokuWikiTest
     }
     public function testProcessPageWithLocalMedia()
     {
+        $this->createTestData();
+        
         $processor = new Processor('test', true, false);
         $result = $processor->processPage('test:page2');
 
@@ -118,6 +75,8 @@ class ProcessorTest extends DokuWikiTest
     }
     public function testStrictModeVsNonStrict()
     {
+        $this->createTestData();
+        
         // Non-strict mode: subnamespace media should not be moved
         $processorNonStrict = new Processor('test', true, false);
         $resultNonStrict = $processorNonStrict->processPage('test:subns:page3');
@@ -134,6 +93,8 @@ class ProcessorTest extends DokuWikiTest
     }
     public function testIsolateProcessesMultiplePages()
     {
+        $this->createTestData();
+        
         $processor = new Processor('test', true, false);
         $processor->isolate();
 
@@ -177,9 +138,6 @@ class ProcessorTest extends DokuWikiTest
         $this->assertEquals('foo:bar:qux.jpg', $resultStrict['copyList']['foo:qux']);
         $this->assertStringContains('{{qux.jpg}}', $resultStrict['new']);
 
-        // Cleanup
-        saveWikiText('foo:bar:baz', '', 'Test cleanup');
-        if (file_exists($mediaFile)) unlink($mediaFile);
     }
 
     public function testAbsolutePathConversion()
@@ -195,8 +153,6 @@ class ProcessorTest extends DokuWikiTest
         $this->assertStringContains('{{image1.jpg}}', $result['new']);
         $this->assertStringNotContains('{{test:image1.jpg}}', $result['new']);
 
-        // Cleanup
-        saveWikiText('test:subpage', '', 'Test cleanup');
     }
 
     public function testProcessPageWithNoMedia()
@@ -211,7 +167,5 @@ class ProcessorTest extends DokuWikiTest
         $this->assertFalse($result['changed']);
         $this->assertEmpty($result['copyList']);
 
-        // Cleanup
-        saveWikiText($testPageId, '', 'Test cleanup');
     }
 }
