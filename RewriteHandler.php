@@ -47,17 +47,17 @@ class RewriteHandler
 
     public function media($match, $state, $pos)
     {
-
         if (preg_match('/\{\{\s*([^?|\s}]+)/', $match, $extract)) {
             $mediaID = $extract[1];
             if (!preg_match('/^(https?:\/\/)/', $mediaID)) {
                 $resolved = $this->mediaResolver->resolveId($mediaID);
-                $isInCorrectNamespace = $this->strict
-                    ? IdUtils::isInSameNamespace($resolved, $this->ns)
-                    : IdUtils::isInNamespace($resolved, $this->ns);
 
-                if (!$isInCorrectNamespace) {
-                    $local = $this->ns . ':' . noNS($resolved);
+                $targetNamespace = $this->strict
+                    ? getNS($this->id)
+                    : $this->ns;
+
+                if (!IdUtils::isInNamespace($resolved, $targetNamespace)) {
+                    $local = $targetNamespace . ':' . noNS($resolved);
                     $this->toCopy[$resolved] = $local;
                 } else {
                     $local = $resolved;
