@@ -46,7 +46,7 @@ class cli_plugin_isolator extends \dokuwiki\Extension\CLIPlugin
             $namespace,
             $dryRun,
             $strict,
-            function($message) { echo $message; }
+            $this
         );
         
         $processor->isolate();

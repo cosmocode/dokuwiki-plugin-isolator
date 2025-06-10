@@ -16,7 +16,7 @@ class Processor
     /** @var bool Whether to use strict mode */
     protected $strict;
 
-    /** @var callable|null Logger function */
+    /** @var \dokuwiki\Extension\CLIPlugin|\dokuwiki\Logger|null Logger instance */
     protected $logger;
 
     /** @var array Results from processing */
@@ -152,9 +152,19 @@ class Processor
      */
     protected function log($message)
     {
-        if ($this->logger) {
-            call_user_func($this->logger, $message);
+        if ($this->logger === null) {
+            echo $message;
+            return;
+        }
+
+        if ($this->logger instanceof \dokuwiki\Extension\CLIPlugin) {
+            // CLIPlugin has info() method for logging
+            $this->logger->info($message);
+        } elseif ($this->logger instanceof \dokuwiki\Logger) {
+            // Logger has log() method
+            $this->logger->log($message);
         } else {
+            // Fallback for any other type
             echo $message;
         }
     }
